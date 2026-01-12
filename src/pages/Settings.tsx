@@ -1,15 +1,14 @@
 import { useRef } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import SettingsSection from '@/components/Settings/SettingsSection';
-import ApiKeyInput from '@/components/Settings/ApiKeyInput';
 import ToggleSwitch from '@/components/Settings/ToggleSwitch';
 import NumberInput from '@/components/Settings/NumberInput';
 import DangerZone, { RotateCcw, Trash2 } from '@/components/Settings/DangerZone';
 import { useSettings } from '@/hooks/useSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  Key,
   Bell,
   Palette,
   Cog,
@@ -17,6 +16,8 @@ import {
   Upload,
   Save,
   Loader2,
+  Server,
+  Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,7 +28,6 @@ const Settings = () => {
     saving,
     hasChanges,
     saveSettings,
-    updateApiKey,
     updateAutomation,
     updateNotifications,
     updateUI,
@@ -100,27 +100,14 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* API Keys Section */}
-        <SettingsSection
-          title="API Keys"
-          description="Configure your API keys for AI services"
-          icon={Key}
-        >
-          <ApiKeyInput
-            label="OpenRouter API Key"
-            value={settings.apiKeys.openrouter}
-            onChange={(value) => updateApiKey('openrouter', value)}
-            placeholder="sk-or-..."
-            description="Used for vision analysis and automation decisions"
-          />
-          <ApiKeyInput
-            label="Gemini API Key"
-            value={settings.apiKeys.gemini}
-            onChange={(value) => updateApiKey('gemini', value)}
-            placeholder="AIza..."
-            description="Alternative AI provider for vision tasks"
-          />
-        </SettingsSection>
+        {/* Backend Status Info */}
+        <Alert className="border-primary/30 bg-primary/5">
+          <Server className="h-4 w-4 text-primary" />
+          <AlertDescription className="text-sm">
+            <span className="font-semibold text-primary">Backend Managed:</span>{' '}
+            API keys (OpenRouter) are configured on the backend server. No API key setup is required here.
+          </AlertDescription>
+        </Alert>
 
         {/* Automation Section */}
         <SettingsSection
@@ -252,7 +239,7 @@ const Settings = () => {
               id: 'reset',
               label: 'Reset',
               description: 'Reset all settings to defaults',
-              confirmText: 'This will reset all settings to their default values. Your API keys and other configurations will be lost.',
+              confirmText: 'This will reset all settings to their default values. Your configurations will be lost.',
               icon: <RotateCcw size={14} />,
               onConfirm: () => {
                 resetSettings();

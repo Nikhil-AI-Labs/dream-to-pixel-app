@@ -1,8 +1,3 @@
-export interface ApiKeysConfig {
-  openrouter: string;
-  gemini: string;
-}
-
 export interface AutomationConfig {
   headlessMode: boolean;
   retryAttempts: number;
@@ -24,17 +19,12 @@ export interface UIConfig {
 }
 
 export interface UserSettings {
-  apiKeys: ApiKeysConfig;
   automation: AutomationConfig;
   notifications: NotificationConfig;
   ui: UIConfig;
 }
 
 export const defaultSettings: UserSettings = {
-  apiKeys: {
-    openrouter: '',
-    gemini: '',
-  },
   automation: {
     headlessMode: true,
     retryAttempts: 3,
