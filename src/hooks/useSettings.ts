@@ -53,11 +53,6 @@ export const useSettings = () => {
     setHasChanges(true);
   }, []);
 
-  // Update API keys
-  const updateApiKey = useCallback((key: keyof UserSettings['apiKeys'], value: string) => {
-    updateSettings('apiKeys', { [key]: value });
-  }, [updateSettings]);
-
   // Update automation config
   const updateAutomation = useCallback((key: keyof UserSettings['automation'], value: boolean | number) => {
     updateSettings('automation', { [key]: value });
@@ -119,7 +114,6 @@ export const useSettings = () => {
     hasChanges,
     saveSettings,
     updateSettings,
-    updateApiKey,
     updateAutomation,
     updateNotifications,
     updateUI,
