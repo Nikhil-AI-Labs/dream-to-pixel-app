@@ -47,6 +47,14 @@ export const LazyLogin = lazy(() =>
   import('../pages/Login')
 );
 
+export const LazySignup = lazy(() => 
+  import('../pages/Signup')
+);
+
+export const LazyForgotPassword = lazy(() => 
+  import('../pages/ForgotPassword')
+);
+
 export const LazySetup = lazy(() => 
   import('../pages/Setup')
 );

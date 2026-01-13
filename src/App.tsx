@@ -7,8 +7,10 @@ import { Suspense, useEffect } from "react";
 import LoadingFallback from "@/components/LoadingFallback";
 import OfflineIndicator from "@/components/Mobile/OfflineIndicator";
 import InstallPrompt from "@/components/Mobile/InstallPrompt";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { useViewportHeight } from "@/hooks/useViewportHeight";
 import { notificationService } from "@/services/notifications";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Lazy loaded pages for code splitting
 import {
@@ -19,6 +21,8 @@ import {
   LazyLogs,
   LazySettings,
   LazyLogin,
+  LazySignup,
+  LazyForgotPassword,
   LazySetup,
   LazyNotFound,
 } from "@/utils/lazyLoading";
@@ -51,17 +55,63 @@ const AppContent = () => {
       {/* Routes */}
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          {/* Auth Routes */}
+          {/* Public Auth Routes */}
           <Route path="/login" element={<LazyLogin />} />
+          <Route path="/signup" element={<LazySignup />} />
+          <Route path="/forgot-password" element={<LazyForgotPassword />} />
+
+          {/* Setup Route (protected but different flow) */}
           <Route path="/setup" element={<LazySetup />} />
 
-          {/* Main App Routes */}
-          <Route path="/dashboard" element={<LazyDashboard />} />
-          <Route path="/accounts" element={<LazyAccounts />} />
-          <Route path="/accounts/new" element={<LazyNewAccount />} />
-          <Route path="/accounts/:id/edit" element={<LazyEditAccount />} />
-          <Route path="/logs" element={<LazyLogs />} />
-          <Route path="/settings" element={<LazySettings />} />
+          {/* Protected Main App Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <LazyDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/accounts"
+            element={
+              <ProtectedRoute>
+                <LazyAccounts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/accounts/new"
+            element={
+              <ProtectedRoute>
+                <LazyNewAccount />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/accounts/:id/edit"
+            element={
+              <ProtectedRoute>
+                <LazyEditAccount />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/logs"
+            element={
+              <ProtectedRoute>
+                <LazyLogs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <LazySettings />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Redirects */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -77,11 +127,13 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
