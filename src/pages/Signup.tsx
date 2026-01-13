@@ -1,43 +1,84 @@
 import { useState } from 'react';
-import { Navigate, useLocation, Link } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, AlertCircle, CheckCircle } from 'lucide-react';
 
-const Login = () => {
-  const { signIn, user, loading } = useAuth();
-  const location = useLocation();
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
+const Signup = () => {
+  const { signUp, user, loading } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   // Redirect if already logged in
   if (user && !loading) {
-    return <Navigate to={from} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
+
+  const validateForm = () => {
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return false;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return false;
+    }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!validateForm()) return;
+
     setIsLoading(true);
 
     try {
-      await signIn(email, password);
-      // Navigation handled by auth state change
+      await signUp(email, password, displayName || undefined);
+      setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in. Please check your credentials.');
+      setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-border bg-card">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-neon/20 border border-neon/50 flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-neon" />
+              </div>
+              <h2 className="text-xl font-mono font-bold text-primary">Account Created!</h2>
+              <p className="text-muted-foreground">
+                You can now sign in to your account.
+              </p>
+              <Link to="/login">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -51,14 +92,14 @@ const Login = () => {
             FORGER
           </h1>
           <p className="text-muted-foreground mt-2">
-            Colab Automation Command Center
+            Create your account
           </p>
         </div>
 
-        {/* Login Form */}
+        {/* Signup Form */}
         <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-center text-lg font-mono">Sign In</CardTitle>
+            <CardTitle className="text-center text-lg font-mono">Sign Up</CardTitle>
           </CardHeader>
           <CardContent>
             {error && (
@@ -69,6 +110,24 @@ const Login = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="displayName" className="text-primary">
+                  Display Name (optional)
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="displayName"
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="pl-10 bg-secondary border-border"
+                    placeholder="Enter your name"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-primary">
                   Email Address
@@ -100,7 +159,7 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10 bg-secondary border-border"
-                    placeholder="Enter your password"
+                    placeholder="Enter your password (min 6 chars)"
                     required
                     disabled={isLoading}
                   />
@@ -115,26 +174,39 @@ const Login = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-primary">
+                  Confirm Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type={showPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-10 bg-secondary border-border"
+                    placeholder="Confirm your password"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing In...' : 'Sign In'}
+                {isLoading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
 
-            <div className="mt-4 text-center space-y-2">
-              <Link
-                to="/forgot-password"
-                className="text-sm text-primary hover:text-primary/80"
-              >
-                Forgot your password?
-              </Link>
+            <div className="mt-4 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-primary hover:text-primary/80">
-                  Sign up
+                Already have an account?{' '}
+                <Link to="/login" className="text-primary hover:text-primary/80">
+                  Sign in
                 </Link>
               </p>
             </div>
@@ -145,4 +217,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;
