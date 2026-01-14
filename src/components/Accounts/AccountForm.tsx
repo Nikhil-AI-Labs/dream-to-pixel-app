@@ -65,7 +65,7 @@ const AccountForm = ({
     defaultValues: {
       name: account?.name || '',
       email: account?.email || '',
-      notebookUrl: account?.notebookUrl || '',
+      notebookUrl: account?.notebook_url || '',
       priority: account?.priority || totalAccounts + 1,
     },
   });

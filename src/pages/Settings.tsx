@@ -14,10 +14,8 @@ import {
   Cog,
   Download,
   Upload,
-  Save,
   Loader2,
   Server,
-  Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -26,26 +24,15 @@ const Settings = () => {
     settings,
     loading,
     saving,
-    hasChanges,
-    saveSettings,
-    updateAutomation,
-    updateNotifications,
-    updateUI,
+    updateAutomationConfig,
+    updateNotificationConfig,
+    updateUIConfig,
     resetSettings,
     exportSettings,
     importSettings,
   } = useSettings();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleSave = async () => {
-    const success = await saveSettings();
-    if (success) {
-      toast.success('Settings saved successfully');
-    } else {
-      toast.error('Failed to save settings');
-    }
-  };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -70,7 +57,16 @@ const Settings = () => {
     window.location.reload();
   };
 
-  if (loading) {
+  const handleResetSettings = async () => {
+    try {
+      await resetSettings();
+      toast.success('Settings reset to defaults');
+    } catch {
+      toast.error('Failed to reset settings');
+    }
+  };
+
+  if (loading || !settings) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center h-[calc(100vh-200px)]">
@@ -86,18 +82,12 @@ const Settings = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-mono font-bold text-primary">Settings</h1>
-          <div className="flex items-center gap-2">
-            {hasChanges && (
-              <Button onClick={handleSave} disabled={saving} className="gap-2">
-                {saving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Save Changes
-              </Button>
-            )}
-          </div>
+          {saving && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Saving...
+            </div>
+          )}
         </div>
 
         {/* Backend Status Info */}
@@ -118,21 +108,27 @@ const Settings = () => {
           <ToggleSwitch
             label="Headless Mode"
             description="Run browser in background without visible window"
-            checked={settings.automation.headlessMode}
-            onChange={(checked) => updateAutomation('headlessMode', checked)}
+            checked={settings.automation_config.headlessMode}
+            onChange={async (checked) => {
+              await updateAutomationConfig({ headlessMode: checked });
+            }}
           />
           <NumberInput
             label="Retry Attempts"
-            value={settings.automation.retryAttempts}
-            onChange={(value) => updateAutomation('retryAttempts', value)}
+            value={settings.automation_config.retryAttempts}
+            onChange={async (value) => {
+              await updateAutomationConfig({ retryAttempts: value });
+            }}
             min={1}
             max={10}
             description="Number of times to retry failed operations"
           />
           <NumberInput
             label="Timeout Duration"
-            value={settings.automation.timeoutDuration}
-            onChange={(value) => updateAutomation('timeoutDuration', value)}
+            value={settings.automation_config.timeoutDuration}
+            onChange={async (value) => {
+              await updateAutomationConfig({ timeoutDuration: value });
+            }}
             min={5000}
             max={120000}
             step={1000}
@@ -141,8 +137,10 @@ const Settings = () => {
           />
           <NumberInput
             label="Screenshot Interval"
-            value={settings.automation.screenshotInterval}
-            onChange={(value) => updateAutomation('screenshotInterval', value)}
+            value={settings.automation_config.screenshotInterval}
+            onChange={async (value) => {
+              await updateAutomationConfig({ screenshotInterval: value });
+            }}
             min={1000}
             max={30000}
             step={1000}
@@ -160,26 +158,34 @@ const Settings = () => {
           <ToggleSwitch
             label="Push Notifications"
             description="Enable push notifications on this device"
-            checked={settings.notifications.pushEnabled}
-            onChange={(checked) => updateNotifications('pushEnabled', checked)}
+            checked={settings.notification_config.pushEnabled}
+            onChange={async (checked) => {
+              await updateNotificationConfig({ pushEnabled: checked });
+            }}
           />
           <ToggleSwitch
             label="Error Alerts"
             description="Get notified when automation encounters errors"
-            checked={settings.notifications.errorAlerts}
-            onChange={(checked) => updateNotifications('errorAlerts', checked)}
+            checked={settings.notification_config.errorAlerts}
+            onChange={async (checked) => {
+              await updateNotificationConfig({ errorAlerts: checked });
+            }}
           />
           <ToggleSwitch
             label="Success Alerts"
             description="Get notified when tasks complete successfully"
-            checked={settings.notifications.successAlerts}
-            onChange={(checked) => updateNotifications('successAlerts', checked)}
+            checked={settings.notification_config.successAlerts}
+            onChange={async (checked) => {
+              await updateNotificationConfig({ successAlerts: checked });
+            }}
           />
           <ToggleSwitch
             label="GPU Quota Warnings"
             description="Get notified when GPU quota is running low"
-            checked={settings.notifications.quotaWarnings}
-            onChange={(checked) => updateNotifications('quotaWarnings', checked)}
+            checked={settings.notification_config.quotaWarnings}
+            onChange={async (checked) => {
+              await updateNotificationConfig({ quotaWarnings: checked });
+            }}
           />
         </SettingsSection>
 
@@ -192,14 +198,18 @@ const Settings = () => {
           <ToggleSwitch
             label="Auto-scroll Logs"
             description="Automatically scroll to latest log entries"
-            checked={settings.ui.autoScroll}
-            onChange={(checked) => updateUI('autoScroll', checked)}
+            checked={settings.ui_config.autoScroll}
+            onChange={async (checked) => {
+              await updateUIConfig({ autoScroll: checked });
+            }}
           />
           <ToggleSwitch
             label="Compact Mode"
             description="Reduce spacing for more content on screen"
-            checked={settings.ui.compactMode}
-            onChange={(checked) => updateUI('compactMode', checked)}
+            checked={settings.ui_config.compactMode}
+            onChange={async (checked) => {
+              await updateUIConfig({ compactMode: checked });
+            }}
           />
         </SettingsSection>
 
@@ -241,10 +251,7 @@ const Settings = () => {
               description: 'Reset all settings to defaults',
               confirmText: 'This will reset all settings to their default values. Your configurations will be lost.',
               icon: <RotateCcw size={14} />,
-              onConfirm: () => {
-                resetSettings();
-                toast.success('Settings reset to defaults');
-              },
+              onConfirm: handleResetSettings,
             },
             {
               id: 'clear',

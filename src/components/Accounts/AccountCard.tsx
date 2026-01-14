@@ -37,6 +37,11 @@ const AccountCard = ({
     transition,
   };
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    return new Date(dateString).toLocaleDateString();
+  };
+
   return (
     <Card
       ref={setNodeRef}
@@ -78,9 +83,9 @@ const AccountCard = ({
               <span className="text-xs text-amber font-mono">
                 Priority #{account.priority}
               </span>
-              {account.lastLogin && (
+              {account.last_login && (
                 <span className="text-xs text-muted-foreground">
-                  Last login: {account.lastLogin.toLocaleDateString()}
+                  Last login: {formatDate(account.last_login)}
                 </span>
               )}
             </div>
@@ -89,7 +94,7 @@ const AccountCard = ({
           {/* Actions */}
           <AccountActions
             accountId={account.id}
-            notebookUrl={account.notebookUrl}
+            notebookUrl={account.notebook_url}
             onEdit={() => onEdit(account.id)}
             onDelete={() => onDelete(account.id)}
             onTest={() => onTest(account.id)}
