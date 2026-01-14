@@ -50,10 +50,10 @@ const EditAccount = () => {
       await updateAccount(id, {
         name: data.name,
         email: data.email,
-        notebookUrl: data.notebookUrl,
+        notebook_url: data.notebookUrl,
         priority: data.priority,
         // Update cookie file path if new file uploaded
-        ...(data.cookieFile && { cookieFilePath: data.cookieFile.name }),
+        ...(data.cookieFile && { cookie_file_path: data.cookieFile.name }),
       });
 
       toast({
@@ -100,6 +100,11 @@ const EditAccount = () => {
     navigate('/accounts');
   };
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    return new Date(dateString).toLocaleDateString();
+  };
+
   if (!account) {
     return (
       <MainLayout>
@@ -144,20 +149,20 @@ const EditAccount = () => {
               <div className="flex justify-between">
                 <span>Created</span>
                 <span className="font-mono">
-                  {account.createdAt.toLocaleDateString()}
+                  {formatDate(account.created_at)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Last Updated</span>
                 <span className="font-mono">
-                  {account.updatedAt.toLocaleDateString()}
+                  {formatDate(account.updated_at)}
                 </span>
               </div>
-              {account.lastLogin && (
+              {account.last_login && (
                 <div className="flex justify-between">
                   <span>Last Login</span>
                   <span className="font-mono">
-                    {account.lastLogin.toLocaleDateString()}
+                    {formatDate(account.last_login)}
                   </span>
                 </div>
               )}

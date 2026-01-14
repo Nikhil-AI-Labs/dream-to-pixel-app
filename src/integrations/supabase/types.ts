@@ -14,6 +14,136 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          cookie_file_path: string | null
+          created_at: string
+          email: string
+          id: string
+          last_login: string | null
+          name: string
+          notebook_url: string
+          priority: number | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cookie_file_path?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          last_login?: string | null
+          name: string
+          notebook_url: string
+          priority?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cookie_file_path?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          last_login?: string | null
+          name?: string
+          notebook_url?: string
+          priority?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      automation_logs: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          message: string
+          metadata: Json | null
+          session_id: string | null
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level: string
+          message: string
+          metadata?: Json | null
+          session_id?: string | null
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          metadata?: Json | null
+          session_id?: string | null
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "automation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_sessions: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          ended_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          runtime_seconds: number | null
+          started_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          ended_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          runtime_seconds?: number | null
+          started_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          ended_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          runtime_seconds?: number | null
+          started_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_sessions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -39,6 +169,74 @@ export type Database = {
           display_name?: string | null
           id?: string
           setup_completed?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      screenshots: {
+        Row: {
+          created_at: string
+          file_path: string
+          file_size: number | null
+          id: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screenshots_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "automation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          api_keys: Json | null
+          automation_config: Json | null
+          created_at: string
+          id: string
+          notification_config: Json | null
+          ui_config: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_keys?: Json | null
+          automation_config?: Json | null
+          created_at?: string
+          id?: string
+          notification_config?: Json | null
+          ui_config?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_keys?: Json | null
+          automation_config?: Json | null
+          created_at?: string
+          id?: string
+          notification_config?: Json | null
+          ui_config?: Json | null
           updated_at?: string
           user_id?: string
         }

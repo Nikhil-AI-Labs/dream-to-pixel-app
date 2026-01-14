@@ -1,124 +1,142 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { DatabaseService, AccountData } from '@/services/database';
+import { logError, getErrorMessage } from '@/utils/errorHandler';
 import type { Account } from '@/types/agent';
 
-// Mock initial accounts for demo
-const mockAccounts: Account[] = [
-  {
-    id: '1',
-    name: 'Training Account 1',
-    email: 'ml-training-1@example.com',
-    notebookUrl: 'https://colab.research.google.com/drive/example1',
-    priority: 1,
-    status: 'ACTIVE',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Training Account 2',
-    email: 'ml-training-2@example.com',
-    notebookUrl: 'https://colab.research.google.com/drive/example2',
-    priority: 2,
-    status: 'INACTIVE',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+export { type Account } from '@/types/agent';
 
 export const useAccounts = () => {
-  const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadAccounts = useCallback(async () => {
-    setLoading(true);
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Will be replaced with Supabase call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setAccounts(mockAccounts);
+      setLoading(true);
       setError(null);
+      const data = await DatabaseService.getUserAccounts(user.id);
+      setAccounts(data as Account[]);
     } catch (err) {
-      setError('Failed to load accounts');
+      const message = getErrorMessage(err);
+      setError(message);
+      logError(err instanceof Error ? err : new Error(message), { 
+        action: 'loadAccounts', 
+        userId: user.id 
+      });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
-  const createAccount = useCallback(async (data: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setLoading(true);
+  useEffect(() => {
+    loadAccounts();
+  }, [loadAccounts]);
+
+  const createAccount = useCallback(async (accountData: Omit<AccountData, 'priority'>) => {
+    if (!user) throw new Error('User not authenticated');
+
     try {
-      const newAccount: Account = {
-        ...data,
-        id: crypto.randomUUID(),
-        priority: accounts.length + 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setAccounts((prev) => [...prev, newAccount]);
       setError(null);
+      const newAccount = await DatabaseService.createAccount(user.id, accountData);
+      setAccounts(prev => [...prev, newAccount as Account]);
       return newAccount;
     } catch (err) {
-      setError('Failed to create account');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [accounts.length]);
-
-  const updateAccount = useCallback(async (id: string, data: Partial<Account>) => {
-    setLoading(true);
-    try {
-      setAccounts((prev) =>
-        prev.map((acc) =>
-          acc.id === id ? { ...acc, ...data, updatedAt: new Date() } : acc
-        )
-      );
-      setError(null);
-    } catch (err) {
-      setError('Failed to update account');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const deleteAccount = useCallback(async (id: string) => {
-    setLoading(true);
-    try {
-      setAccounts((prev) => {
-        const filtered = prev.filter((acc) => acc.id !== id);
-        // Re-assign priorities
-        return filtered.map((acc, index) => ({
-          ...acc,
-          priority: index + 1,
-        }));
+      const message = getErrorMessage(err);
+      setError(message);
+      logError(err instanceof Error ? err : new Error(message), { 
+        action: 'createAccount', 
+        userId: user.id 
       });
-      setError(null);
-    } catch (err) {
-      setError('Failed to delete account');
       throw err;
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }, [user]);
+
+  const updateAccount = useCallback(async (accountId: string, updates: Partial<AccountData>) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      setError(null);
+      const updatedAccount = await DatabaseService.updateAccount(accountId, updates);
+      setAccounts(prev =>
+        prev.map(acc => acc.id === accountId ? updatedAccount as Account : acc)
+      );
+      return updatedAccount;
+    } catch (err) {
+      const message = getErrorMessage(err);
+      setError(message);
+      logError(err instanceof Error ? err : new Error(message), { 
+        action: 'updateAccount', 
+        userId: user.id,
+        accountId 
+      });
+      throw err;
+    }
+  }, [user]);
+
+  const deleteAccount = useCallback(async (accountId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      setError(null);
+      await DatabaseService.deleteAccount(accountId);
+      setAccounts(prev => prev.filter(acc => acc.id !== accountId));
+    } catch (err) {
+      const message = getErrorMessage(err);
+      setError(message);
+      logError(err instanceof Error ? err : new Error(message), { 
+        action: 'deleteAccount', 
+        userId: user.id,
+        accountId 
+      });
+      throw err;
+    }
+  }, [user]);
 
   const reorderAccounts = useCallback(async (reorderedAccounts: Account[]) => {
+    if (!user) throw new Error('User not authenticated');
+
+    const accountIds = reorderedAccounts.map(acc => acc.id);
+    const previousAccounts = [...accounts];
+
+    // Optimistically update UI
     const updatedAccounts = reorderedAccounts.map((acc, index) => ({
       ...acc,
       priority: index + 1,
-      updatedAt: new Date(),
     }));
     setAccounts(updatedAccounts);
-  }, []);
 
-  const testAccount = useCallback(async (id: string): Promise<boolean> => {
-    // Simulate testing connection
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return Math.random() > 0.3; // 70% success rate for demo
+    try {
+      setError(null);
+      await DatabaseService.reorderAccounts(user.id, accountIds);
+    } catch (err) {
+      // Rollback on error
+      setAccounts(previousAccounts);
+      const message = getErrorMessage(err);
+      setError(message);
+      logError(err instanceof Error ? err : new Error(message), { 
+        action: 'reorderAccounts', 
+        userId: user.id 
+      });
+      throw err;
+    }
+  }, [user, accounts]);
+
+  const testAccount = useCallback(async (accountId: string): Promise<boolean> => {
+    // This will be implemented when we add the automation backend
+    // For now, simulate a test
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    return Math.random() > 0.3;
   }, []);
 
   const getAccountById = useCallback(
-    (id: string) => accounts.find((acc) => acc.id === id),
+    (id: string) => accounts.find(acc => acc.id === id),
     [accounts]
   );
 
@@ -133,5 +151,6 @@ export const useAccounts = () => {
     reorderAccounts,
     testAccount,
     getAccountById,
+    refetch: loadAccounts,
   };
 };

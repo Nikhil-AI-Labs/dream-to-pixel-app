@@ -25,11 +25,10 @@ const NewAccount = () => {
       await createAccount({
         name: data.name,
         email: data.email,
-        notebookUrl: data.notebookUrl,
-        priority: data.priority,
+        notebook_url: data.notebookUrl,
         status: 'INACTIVE',
         // In real implementation, upload cookie file first and store path
-        cookieFilePath: data.cookieFile?.name,
+        cookie_file_path: data.cookieFile?.name,
       });
 
       toast({
