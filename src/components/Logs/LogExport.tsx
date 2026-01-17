@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -5,15 +6,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Download, FileJson, FileText } from 'lucide-react';
+import { Download, FileJson, FileText, Cloud, Loader2 } from 'lucide-react';
 import { LogEntry } from '@/types/agent';
 import { toast } from 'sonner';
+import { useStorage } from '@/hooks/useStorage';
 
 interface LogExportProps {
   logs: LogEntry[];
 }
 
 const LogExport = ({ logs }: LogExportProps) => {
+  const { exportLogs } = useStorage();
+  const [isExporting, setIsExporting] = useState(false);
+
   const exportAsJSON = () => {
     const exportData = logs.map((log) => ({
       timestamp: log.timestamp.toISOString(),
@@ -42,6 +47,30 @@ const LogExport = ({ logs }: LogExportProps) => {
     toast.success('Logs exported as text');
   };
 
+  const exportToCloud = async () => {
+    setIsExporting(true);
+    try {
+      const exportData = logs.map((log) => ({
+        timestamp: log.timestamp.toISOString(),
+        level: log.level,
+        message: log.message,
+        source: log.source,
+        metadata: log.metadata,
+      }));
+
+      const downloadUrl = await exportLogs(exportData);
+      
+      // Open download URL in new tab
+      window.open(downloadUrl, '_blank');
+      toast.success('Logs exported to cloud storage');
+    } catch (error) {
+      console.error('Cloud export failed:', error);
+      toast.error('Failed to export logs to cloud');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const downloadFile = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -56,8 +85,12 @@ const LogExport = ({ logs }: LogExportProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Download className="h-4 w-4" />
+        <Button variant="outline" size="sm" className="gap-2" disabled={isExporting}>
+          {isExporting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
           Export
         </Button>
       </DropdownMenuTrigger>
@@ -69,6 +102,10 @@ const LogExport = ({ logs }: LogExportProps) => {
         <DropdownMenuItem onClick={exportAsText} className="gap-2 cursor-pointer">
           <FileText className="h-4 w-4" />
           Export as Text
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={exportToCloud} className="gap-2 cursor-pointer" disabled={isExporting}>
+          <Cloud className="h-4 w-4" />
+          Export to Cloud
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

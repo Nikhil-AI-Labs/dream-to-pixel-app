@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import Header from './Header';
 import BottomNavigation from './BottomNavigation';
 import type { AgentStatus } from '@/types/agent';
@@ -10,12 +10,9 @@ interface MainLayoutProps {
 }
 
 const MainLayout = ({ children, agentStatus = 'IDLE', onEmergencyStop }: MainLayoutProps) => {
-  const [isOnline] = useState(true); // Will be replaced with real hook
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header
-        isOnline={isOnline}
         agentStatus={agentStatus}
         onEmergencyStop={onEmergencyStop}
       />
