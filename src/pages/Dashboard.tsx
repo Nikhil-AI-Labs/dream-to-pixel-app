@@ -11,13 +11,16 @@ import type { AgentStatus, Account, LogEntry, GPUStatus } from '@/types/agent';
 // Mock data for demonstration
 const mockAccount: Account = {
   id: '1',
+  user_id: 'mock-user',
   name: 'Training Account 1',
   email: 'ml-training@example.com',
-  notebookUrl: 'https://colab.research.google.com/drive/example',
+  notebook_url: 'https://colab.research.google.com/drive/example',
   priority: 1,
   status: 'ACTIVE',
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  cookie_file_path: null,
+  last_login: null,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 };
 
 const mockLogs: LogEntry[] = [

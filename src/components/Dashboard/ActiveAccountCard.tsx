@@ -51,7 +51,7 @@ const ActiveAccountCard = ({ account, onSwitch, isLoading, className }: ActiveAc
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            {account.notebookUrl && (
+            {account.notebook_url && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -59,7 +59,7 @@ const ActiveAccountCard = ({ account, onSwitch, isLoading, className }: ActiveAc
                 asChild
               >
                 <a
-                  href={account.notebookUrl}
+                  href={account.notebook_url}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
