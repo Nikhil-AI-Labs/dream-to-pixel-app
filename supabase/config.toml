@@ -1,1 +1,7 @@
 project_id = "exslshxcakjcxvhbylya"
+
+[functions.ai-service]
+verify_jwt = false
+
+[functions.automation-command]
+verify_jwt = false
