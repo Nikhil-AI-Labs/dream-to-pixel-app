@@ -8,8 +8,10 @@ import LoadingFallback from "@/components/LoadingFallback";
 import OfflineIndicator from "@/components/Mobile/OfflineIndicator";
 import InstallPrompt from "@/components/Mobile/InstallPrompt";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { useViewportHeight } from "@/hooks/useViewportHeight";
 import { notificationService } from "@/services/notifications";
+import { setupGlobalErrorHandlers } from "@/services/errorLogging";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Lazy loaded pages for code splitting
@@ -41,9 +43,10 @@ const AppContent = () => {
   // Handle mobile viewport height
   useViewportHeight();
 
-  // Initialize notification service
+  // Initialize notification service and global error handlers
   useEffect(() => {
     notificationService.initialize();
+    setupGlobalErrorHandlers();
   }, []);
 
   return (
@@ -125,17 +128,19 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

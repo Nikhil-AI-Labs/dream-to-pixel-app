@@ -102,6 +102,20 @@ export default defineConfig(({ mode }) => ({
       }
     })
   ].filter(Boolean),
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-slot', '@radix-ui/react-tooltip'],
+          utils: ['date-fns', 'clsx', 'class-variance-authority', 'tailwind-merge']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
+    sourcemap: mode !== 'production',
+    minify: mode === 'production' ? 'esbuild' : false
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
